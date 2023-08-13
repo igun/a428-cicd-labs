@@ -32,9 +32,19 @@ pipeline {
         stage('Deploy') { 
             steps {
                 script {
-                    def dockerCmd = 'sudo docker run -p 80:80 -d igun/a428-cicd-labs:latest'
+                    def pullImage = 'sudo docker pull igun/a428-cicd-labs:latest'
+                    def stopDocker = 'sudo docker stop nginx-react-app'
+                    def rmDocker = 'sudo docker rm nginx-react-app'
+                    def dockerCmd = 'sudo docker run --name nginx-react-app -p 80:80 -d igun/a428-cicd-labs:latest'
                     sshagent(['ec2-server-key']) {
-                        sh "ssh -o StrictHostKeyChecking=no ubuntu@52.221.193.119 ${dockerCmd}"
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ubuntu@52.221.193.119 bash -c "'
+                            ${pullImage}
+                            ${stopDocker}
+                            ${rmDocker}
+                            ${dockerCmd}
+                            '"
+                        """
                     }
                 }
                 sleep(time:1,unit:"MINUTES") 
